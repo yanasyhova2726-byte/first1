@@ -1,0 +1,37 @@
+
+<!doctype html>
+<html lang="ru">
+  <meta charset="utf-8" />
+  <title>Чат-бот (эмулятор)</title>
+  <style>
+    :root{color-scheme:light dark}
+    body{font-family:system-ui,Segoe UI,Arial,sans-serif;max-width:820px;margin:40px auto;padding:0 16px}
+    #log{white-space:pre-wrap;border:1px solid #ddd;padding:12px;border-radius:12px;min-height:180px}
+    form{margin-top:12px;display:flex;gap:8px}
+    input{flex:1;padding:10px;border:1px solid #ccc;border-radius:10px}
+    button{padding:10px 14px;border:0;border-radius:10px;cursor:pointer}
+    .muted{opacity:.7;font-size:.9em}
+  </style>
+  <h1>Чат-бот (без модели)</h1>
+  <p class="muted">Это лёгкий эмулятор: ответ = «Эмулятор: &lt;ваш текст&gt;». Подходит, чтобы проверить UI и маршруты.</p>
+  <div id="log">Напишите сообщение ниже…</div>
+  <form id="f">
+    <input id="msg" placeholder="Сообщение…" autocomplete="off" />
+    <button>Отправить</button>
+  </form>
+  <script>
+    const log=document.getElementById('log');const f=document.getElementById('f');const msg=document.getElementById('msg');let dialog=[];
+    function addLine(p,t){log.textContent+="\n"+p+t;log.scrollTop=log.scrollHeight;}
+    f.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const user_input=msg.value.trim(); if(!user_input) return;
+      addLine("Вы: ",user_input); msg.value="";
+      try{
+        const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_input,dialog})});
+        const data=await res.json();
+        if(data.error){addLine("Ошибка: ",data.error);return;}
+        dialog=data.dialog||[]; addLine("Бот: ",data.response||"");
+      }catch(err){addLine("Ошибка сети: ",String(err));}
+    });
+  </script>
+</html>
